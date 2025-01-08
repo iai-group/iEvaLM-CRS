@@ -1,0 +1,33 @@
+# Dockerfile for BARCOR ReDial CRS
+# Created from CRS implementation in iai-group/iEvaLM-CRS
+FROM python:3.9-slim
+
+# Labels
+LABEL version="1.0"
+LABEL author="IAI group"
+LABEL description="Dockerfile for BARCOR ReDial CRS"
+LABEL type="agent"
+LABEL name="BARCOR_ReDial"
+LABEL tasks=["movie_recommendation"]
+
+WORKDIR /app
+
+# Install required packages
+COPY ./requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy ReDial + MovieLend data
+COPY ./data/redial* data/
+COPY ./data/movielens data/
+
+# Copy BARCOR ReDial checkpoint
+COPY ./data/models/barcor_conv_redial data/models/
+COPY ./data/models/barcor_rec_redial data/models/
+
+# Copy source code
+COPY ./src src/
+
+# Copy execution scripts
+COPY ./scripts/serve_model_api.py scripts/
+
+CMD ["python", "-m", "script.serve_model", "--crs_model barcor", "--kg_dataset redial", "--context_max_length 200", "--rec_model data/models/barcor_rec_redial/", "--conv_model data/models/barcor_conv_redial/", "--tokenizer_path facebook/bart-base", "--resp_max_length 128", "--debug"]

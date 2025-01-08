@@ -20,7 +20,7 @@ from thefuzz import fuzz
 
 sys.path.append("..")
 
-from model.crs_model import CRSModel
+from src.model.crs_model import CRSModel
 from src.model.utils import get_entity
 
 warnings.filterwarnings("ignore")
@@ -54,7 +54,7 @@ class my_wait_exponential(wait_base):
         self.exp_base = exp_base
 
     def __call__(self, retry_state: "RetryCallState") -> float:
-        if retry_state.outcome == openai.error.Timeout:
+        if retry_state.outcome == openai.Timeout:
             return 0
 
         try:
@@ -72,7 +72,7 @@ class my_stop_after_attempt(stop_base):
         self.max_attempt_number = max_attempt_number
 
     def __call__(self, retry_state: "RetryCallState") -> bool:
-        if retry_state.outcome == openai.error.Timeout:
+        if retry_state.outcome == openai.Timeout:
             retry_state.attempt_number -= 1
         return retry_state.attempt_number >= self.max_attempt_number
 
@@ -86,8 +86,8 @@ def annotate_completion(prompt, logit_bias=None):
         reraise=True,
         retry=retry_if_not_exception_type(
             (
-                openai.error.InvalidRequestError,
-                openai.error.AuthenticationError,
+                openai.BadRequestError,
+                openai.AuthenticationError,
             )
         ),
         wait=my_wait_exponential(min=1, max=60),
@@ -216,7 +216,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--kg_dataset", type=str, choices=["redial", "opendialkg"])
+    parser.add_argument(
+        "--kg_dataset", type=str, choices=["redial", "opendialkg"]
+    )
 
     # model_detailed
     parser.add_argument("--hidden_size", type=int)
@@ -256,9 +258,13 @@ if __name__ == "__main__":
     model_args = get_model_args(args.crs_model)
     recommender = CRSModel(crs_model=args.crs_model, **model_args)
 
-    recommender_instruction, seeker_instruction_template = get_instruction(args.dataset)
+    recommender_instruction, seeker_instruction_template = get_instruction(
+        args.dataset
+    )
 
-    with open(f"../data/{args.kg_dataset}/entity2id.json", "r", encoding="utf-8") as f:
+    with open(
+        f"data/{args.kg_dataset}/entity2id.json", "r", encoding="utf-8"
+    ) as f:
         entity2id = json.load(f)
 
     id2entity = {}
@@ -268,7 +274,7 @@ if __name__ == "__main__":
 
     dialog_id2data = {}
     with open(
-        f"../data/{args.dataset}/test_data_processed.jsonl", encoding="utf-8"
+        f"data/{args.dataset}/test_data_processed.jsonl", encoding="utf-8"
     ) as f:
         lines = f.readlines()
         for line in lines:
@@ -342,7 +348,9 @@ if __name__ == "__main__":
                 rec_items_str = ""
                 for j, rec_item in enumerate(rec_items[0][:50]):
                     rec_items_str += f"{j+1}: {id2entity[rec_item]}\n"
-                recommendation_template = recommendation_template.format(rec_items_str)
+                recommendation_template = recommendation_template.format(
+                    rec_items_str
+                )
                 recommender_text = recommendation_template + recommender_text
 
             # public
@@ -367,7 +375,8 @@ if __name__ == "__main__":
             # seeker
             year_pattern = re.compile(r"\(\d+\)")
             goal_item_no_year_list = [
-                year_pattern.sub("", rec_item).strip() for rec_item in goal_item_list
+                year_pattern.sub("", rec_item).strip()
+                for rec_item in goal_item_list
             ]
             seeker_text = annotate_completion(seeker_prompt).strip()
 
@@ -375,7 +384,10 @@ if __name__ == "__main__":
             for sent in nltk.sent_tokenize(seeker_text):
                 use_sent = True
                 for rec_item_str in goal_item_list + goal_item_no_year_list:
-                    if fuzz.partial_ratio(rec_item_str.lower(), sent.lower()) > 90:
+                    if (
+                        fuzz.partial_ratio(rec_item_str.lower(), sent.lower())
+                        > 90
+                    ):
                         use_sent = False
                         break
                 if use_sent is True:

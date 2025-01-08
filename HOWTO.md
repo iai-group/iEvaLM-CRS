@@ -15,7 +15,7 @@ python -m script.serve_model --crs_model unicrs --kg_dataset redial --model micr
 Start the server with the following command (RedDial dataset):
 
 ```bash
-python -m script.serve_model --crs_model barcor --kg_dataset redial --hidden_size 128 --entity_hidden_size 128 --num_bases 8  --context_max_length 200 --entity_max_length 32 --rec_model data/models/barcor_rec_redial/ --conv_model data/models/barcor_conv_redial/ --tokenizer_path facebook/bart-base --encoder_layers 2 --decoder_layers 2 --attn_head 2 --text_hidden_size 300 --resp_max_length 128 --debug
+python -m script.serve_model --crs_model barcor --kg_dataset redial  --context_max_length 200 --rec_model data/models/barcor_rec_redial/ --conv_model data/models/barcor_conv_redial/ --tokenizer_path facebook/bart-base --resp_max_length 128 --debug
 ```
 
 ### KBRD
