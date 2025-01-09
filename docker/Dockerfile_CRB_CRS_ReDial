@@ -1,13 +1,13 @@
-# Dockerfile for BARCOR ReDial CRS
+# Dockerfile for Contextual Retrieval-based CRS ReDial
 # Created from CRS implementation in iai-group/iEvaLM-CRS
 FROM python:3.9-slim
 
 # Labels
 LABEL version="1.0"
 LABEL author="IAI group"
-LABEL description="Dockerfile for BARCOR ReDial CRS"
+LABEL description="Dockerfile for CRB-CRS ReDial"
 LABEL type="agent"
-LABEL name="BARCOR_ReDial"
+LABEL name="CRB_CRS_ReDial"
 LABEL tasks=["movie_recommendation"]
 LABEL port=5005
 
@@ -26,10 +26,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY data/redial/ data/redial/
 COPY data/redial_eval/ data/redial_eval/
 COPY data/movielens/ data//movielens/
+COPY data/crb_crs/ data/crb_crs/
 
-# Copy BARCOR ReDial checkpoint
-COPY data/models/barcor_conv_redial data/models/barcor_conv_redial
-COPY data/models/barcor_rec_redial data/models/barcor_rec_redial
+# Copy CRB-CRS ReDial checkpoint
+COPY data/models/crb_crs_redial data/models/crb_crs_redial
 
 # Copy source code
 COPY src/ src/
@@ -39,4 +39,4 @@ COPY script/serve_model_api.py script/
 
 EXPOSE 5005
 
-CMD ["python", "-m", "script.serve_model_api", "--crs_model", "barcor", "--kg_dataset", "redial", "--context_max_length", "200", "--rec_model","data/models/barcor_rec_redial/", "--conv_model","data/models/barcor_conv_redial/", "--tokenizer_path","facebook/bart-base", "--resp_max_length","128", "--debug"]
+CMD ["python", "-m", "script.serve_model_api", "--crs_model", "crbcrs", "--kg_dataset", "redial", "--domain", "movies", "--corpus", "data/redial/corpus", "--mle_model", "data/models/crb_crs_redial/mle_model.pkl", "--rec_model", "data/models/crb_crs_redial/movie_recommender.pkl"]

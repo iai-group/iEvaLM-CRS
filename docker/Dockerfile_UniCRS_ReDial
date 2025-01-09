@@ -1,13 +1,13 @@
-# Dockerfile for BARCOR ReDial CRS
+# Dockerfile for UniCRS ReDial CRS
 # Created from CRS implementation in iai-group/iEvaLM-CRS
 FROM python:3.9-slim
 
 # Labels
 LABEL version="1.0"
 LABEL author="IAI group"
-LABEL description="Dockerfile for BARCOR ReDial CRS"
+LABEL description="Dockerfile for UniCRS ReDial CRS"
 LABEL type="agent"
-LABEL name="BARCOR_ReDial"
+LABEL name="UniCRS_ReDial"
 LABEL tasks=["movie_recommendation"]
 LABEL port=5005
 
@@ -27,9 +27,9 @@ COPY data/redial/ data/redial/
 COPY data/redial_eval/ data/redial_eval/
 COPY data/movielens/ data//movielens/
 
-# Copy BARCOR ReDial checkpoint
-COPY data/models/barcor_conv_redial data/models/barcor_conv_redial
-COPY data/models/barcor_rec_redial data/models/barcor_rec_redial
+# Copy UniCRS ReDial checkpoint
+COPY data/models/unicrs_conv_redial data/models/unicrs_conv_redial
+COPY data/models/unicrs_rec_redial data/models/unicrs_rec_redial
 
 # Copy source code
 COPY src/ src/
@@ -39,4 +39,4 @@ COPY script/serve_model_api.py script/
 
 EXPOSE 5005
 
-CMD ["python", "-m", "script.serve_model_api", "--crs_model", "barcor", "--kg_dataset", "redial", "--context_max_length", "200", "--rec_model","data/models/barcor_rec_redial/", "--conv_model","data/models/barcor_conv_redial/", "--tokenizer_path","facebook/bart-base", "--resp_max_length","128", "--debug"]
+CMD ["python", "-m", "script.serve_model_api", "--crs_model", "unicrs", "--kg_dataset", "redial", "--model", "microsoft/DialoGPT-small", "--rec_model", "data/models/unicrs_rec_redial/", "--conv_model", "data/models/unicrs_conv_redial/", "--context_max_length", "128", "--entity_max_length", "43", "--tokenizer_path", "microsoft/DialoGPT-small", "--text_tokenizer_path", "roberta-base", "--resp_max_length", "128", "--text_encoder", "roberta-base"]

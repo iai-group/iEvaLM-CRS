@@ -1,13 +1,13 @@
-# Dockerfile for BARCOR OpenDialKG CRS
+# Dockerfile for UniCRS OpenDialKG CRS
 # Created from CRS implementation in iai-group/iEvaLM-CRS
 FROM python:3.9-slim
 
 # Labels
 LABEL version="1.0"
 LABEL author="IAI group"
-LABEL description="Dockerfile for BARCOR OpenDialKG CRS"
+LABEL description="Dockerfile for UniCRS OpenDialKG CRS"
 LABEL type="agent"
-LABEL name="BARCOR_OpenDialKG"
+LABEL name="UniCRS_OpenDialKG"
 LABEL tasks=["movie_recommendation"]
 LABEL port=5005
 
@@ -27,9 +27,9 @@ COPY data/opendialkg/ data/opendialkg/
 COPY data/opendialkg_eval/ data/opendialkg_eval/
 COPY data/movielens/ data//movielens/
 
-# Copy BARCOR OpenDialKG checkpoint
-COPY data/models/barcor_conv_opendialkg data/models/barcor_conv_opendialkg
-COPY data/models/barcor_rec_opendialkg data/models/barcor_rec_opendialkg
+# Copy UniCRS OpenDialKG checkpoint
+COPY data/models/unicrs_conv_opendialkg data/models/unicrs_conv_opendialkg
+COPY data/models/unicrs_rec_opendialkg data/models/unicrs_rec_opendialkg
 
 # Copy source code
 COPY src/ src/
@@ -39,4 +39,4 @@ COPY script/serve_model_api.py script/
 
 EXPOSE 5005
 
-CMD ["python", "-m", "script.serve_model_api", "--crs_model", "barcor", "--kg_dataset", "opendialkg", "--context_max_length", "200", "--rec_model","data/models/barcor_rec_opendialkg/", "--conv_model","data/models/barcor_conv_opendialkg/", "--tokenizer_path","facebook/bart-base", "--resp_max_length","128", "--debug"]
+CMD ["python", "-m", "script.serve_model_api", "--crs_model", "unicrs", "--kg_dataset", "opendialkg", "--model", "microsoft/DialoGPT-small", "--rec_model", "data/models/unicrs_rec_opendialkg/", "--conv_model", "data/models/unicrs_conv_opendialkg/", "--context_max_length", "128", "--entity_max_length", "43", "--tokenizer_path", "microsoft/DialoGPT-small", "--text_tokenizer_path", "roberta-base", "--resp_max_length", "128", "--text_encoder", "roberta-base"]

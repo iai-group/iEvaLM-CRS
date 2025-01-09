@@ -1,0 +1,42 @@
+# Dockerfile for KBRD OpenDialKG CRS
+# Created from CRS implementation in iai-group/iEvaLM-CRS
+FROM python:3.9-slim
+
+# Labels
+LABEL version="1.0"
+LABEL author="IAI group"
+LABEL description="Dockerfile for KBRD OpenDialKG CRS"
+LABEL type="agent"
+LABEL name="KBRD_OpenDialKG"
+LABEL tasks=["movie_recommendation"]
+LABEL port=5005
+
+WORKDIR /
+
+# Install system-level dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install required packages
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy OpenDialKG + MovieLens data
+COPY data/opendialkg/ data/opendialkg/
+COPY data/opendialkg_eval/ data/opendialkg_eval/
+COPY data/movielens/ data//movielens/
+
+# Copy KBRD OpenDialKG checkpoint
+COPY data/models/kbrd_conv_opendialkg data/models/kbrd_conv_opendialkg
+COPY data/models/kbrd_rec_opendialkg data/models/kbrd_rec_opendialkg
+
+# Copy source code
+COPY src/ src/
+
+# Copy execution script
+COPY script/serve_model_api.py script/
+
+EXPOSE 5005
+
+CMD ["python", "-m", "script.serve_model_api", "--crs_model", "kbrd", "--kg_dataset", "opendialkg", "--hidden_size", "128", "--entity_hidden_size", "128", "--num_bases", "8", "--context_max_length", "200", "--entity_max_length", "32", "--rec_model" "data/models/kbrd_rec_opendialkg/", "--conv_model", "data/models/kbrd_conv_opendialkg/", "--tokenizer_path", "facebook/bart-base", "--encoder_layers", "2", "--decoder_layers", "2", "--attn_head", "2", "--text_hidden_size", "300", "--resp_max_length", "128"]
